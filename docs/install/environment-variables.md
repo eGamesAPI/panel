@@ -77,6 +77,7 @@ API_INSTANCES=1
 | `REDIS_PORT`     | The port of the Redis server     | `6379`            | Yes      |
 | `REDIS_DB`       | The database of the Redis server | `0`               | No       |
 | `REDIS_PASSWORD` | The password of the Redis server |                   | No       |
+| `REDIS_SOCKET`   | The socket of the Redis server   |                   | No       |
 
 <details>
 <summary>Example</summary>
@@ -372,30 +373,11 @@ NOT_CONNECTED_USERS_NOTIFICATIONS_AFTER_HOURS=[6, 24, 48]
 
 </details>
 
-## HWID
-
-| Variable                     | Description                                                                              | Default |
-| ---------------------------- | ---------------------------------------------------------------------------------------- | ------- |
-| `HWID_DEVICE_LIMIT_ENABLED`  | Enable/Disable Gloval HWID device limit                                                  | `false` |
-| `HWID_FALLBACK_DEVICE_LIMIT` | The fallback number of devices allowed per user                                          |         |
-| `HWID_MAX_DEVICES_ANNOUNCE`  | Annonunce message when max devices are reached or HWID is not sent by client application |         |
-
-<details>
-<summary>Example</summary>
-
-```bash title=".env file"
-HWID_DEVICE_LIMIT_ENABLED=true
-HWID_FALLBACK_DEVICE_LIMIT=10
-HWID_MAX_DEVICES_ANNOUNCE="Max devices reached"
-```
-
-</details>
-
 ## Miscellaneous
 
 | Variable                  | Description                                                                              | Default |
 | ------------------------- | ---------------------------------------------------------------------------------------- | ------- |
-| `SHORT_UUID_LENGTH`       | The length of the generated short UUID (subscription). Min. lenght 16 and max. lenght 64 | `16`    |
+| `SHORT_UUID_LENGTH`       | The length of the generated short UUID (subscription). Min. length 16 and max. length 64 | `16`    |
 | `IS_HTTP_LOGGING_ENABLED` | Enable/Disable HTTP logging                                                              | `false` |
 | `JWT_AUTH_LIFETIME`       | The lifetime of the auth JWT in hours. Possible values from 12 to 168.                   | `12`    |
 
