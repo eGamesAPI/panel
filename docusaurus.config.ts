@@ -31,6 +31,31 @@ const config: Config = {
                 name: 'theme-color',
                 content: '#242c38'
             }
+        },
+        {
+            tagName: 'link',
+            attributes: {
+                key: 'docusaurus-plugin-plausible-preconnect',
+                rel: 'preconnect',
+                href: `https://ps.log.rw`
+            }
+        },
+        {
+            tagName: 'script',
+            attributes: {
+                async: 'true',
+                src: 'https://ps.log.rw/js/pa-fsigGX5NspgeKn5IItyE7.js'
+            }
+        },
+        {
+            tagName: 'script',
+            attributes: {
+                key: 'docusaurus-plugin-plausible-custom-events'
+            },
+            innerHTML: `
+  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+  plausible.init()
+            `
         }
     ],
 
@@ -39,6 +64,7 @@ const config: Config = {
             'classic',
             {
                 docs: {
+                    routeBasePath: '/',
                     showLastUpdateAuthor: false,
                     showLastUpdateTime: false,
                     sidebarPath: './sidebars.ts',
@@ -48,26 +74,7 @@ const config: Config = {
                 //     showReadingTime: true,
                 //     editUrl: 'https://github.com/remnawave/panel/tree/main'
                 // },
-                blog: {
-                    routeBasePath: '/blog',
-                    path: 'blog',
-                    showReadingTime: true,
-                    // showLastUpdateAuthor: true,
-                    // showLastUpdateTime: true,
-                    // authorsMapPath: './blog/authors.yaml',
-                    postsPerPage: 5,
-                    feedOptions: {
-                        type: 'all',
-                        description:
-                            'Keep up to date with upcoming Remnawave releases and articles by following our feed!',
-                        copyright: `Copyright © ${new Date().getFullYear()} Remnawave`,
-                        xslt: true
-                    },
-                    blogTitle: 'Remnawave blog',
-                    blogDescription: 'Read blog posts about Remnawave from the team',
-                    blogSidebarCount: 'ALL',
-                    blogSidebarTitle: 'All our posts'
-                },
+                blog: false,
                 theme: {
                     customCss: './src/css/custom.css'
                 }
@@ -90,30 +97,6 @@ const config: Config = {
             }
         },
         [
-            '@docusaurus/plugin-client-redirects',
-            {
-                redirects: [
-                    // /docs/oldDoc -> /docs/newDoc
-                    {
-                        from: '/blog/learn',
-                        to: '/docs/learn/quick-start'
-                    },
-                    {
-                        to: '/docs/install/reverse-proxies/',
-                        from: '/category/reverse-proxies'
-                    },
-                    {
-                        from: '/docs/',
-                        to: '/docs/overview/introduction'
-                    },
-                    {
-                        from: '/donate',
-                        to: '/docs/donate'
-                    }
-                ]
-            }
-        ],
-        [
             '@scalar/docusaurus',
             {
                 label: '🔗 API Specification',
@@ -121,7 +104,7 @@ const config: Config = {
                 showNavLink: true, // optional, default is true
                 configuration: {
                     spec: {
-                        url: 'https://cdn.remna.st/docs/openapi.json'
+                        url: 'https://cdn.docs.rw/docs/openapi.json'
                     },
                     theme: 'purple',
                     hideDarkModeToggle: true,
@@ -187,12 +170,15 @@ const config: Config = {
                     label: '📓 Docs'
                 },
                 {
-                    href: 'https://hub.remna.st/changelog',
-                    label: '🚀 Releases',
+                    href: 'https://f.docs.rw',
+                    label: '💬 Forum',
                     position: 'left'
                 },
-                { to: 'blog', label: '📚 Blog', position: 'left' },
-
+                {
+                    href: 'https://f.docs.rw/c/announces/14',
+                    label: '🚀 Changelog',
+                    position: 'left'
+                },
                 {
                     href: 'https://github.com/remnawave',
                     label: 'GitHub',
@@ -207,8 +193,8 @@ const config: Config = {
                     title: 'Docs',
                     items: [
                         {
-                            label: 'Introduction',
-                            to: '/docs/overview/introduction'
+                            label: 'Quick Start',
+                            to: '/overview/quick-start'
                         }
                     ]
                 },
@@ -221,7 +207,7 @@ const config: Config = {
                         },
                         {
                             label: 'Telegram Group',
-                            href: 'https://t.me/+cAFRGkqSWJcxNjE6'
+                            href: 'https://t.me/+c8wKd62eIAE4ZDdi'
                         }
                     ]
                 },

@@ -33,22 +33,22 @@ mkdir -p /opt/remnawave/subscription && cd /opt/remnawave/subscription && nano d
 
 ```yaml title="docker-compose.yml file content"
 services:
-    remnawave-subscription-page:
-        image: remnawave/subscription-page:latest
-        container_name: remnawave-subscription-page
-        hostname: remnawave-subscription-page
-        restart: always
-        env_file:
-            - .env
-        ports:
-            - '127.0.0.1:3010:3010'
-        networks:
-            - remnawave-network
+  remnawave-subscription-page:
+    image: remnawave/subscription-page:latest
+    container_name: remnawave-subscription-page
+    hostname: remnawave-subscription-page
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - '127.0.0.1:3010:3010'
+    networks:
+      - remnawave-network
 
 networks:
-    remnawave-network:
-        driver: bridge
-        external: true
+  remnawave-network:
+    driver: bridge
+    external: true
 ```
 
 Now create .env file:
@@ -57,13 +57,14 @@ Now create .env file:
 mkdir -p /opt/remnawave/subscription && cd /opt/remnawave/subscription && nano .env
 ```
 
+Create API token in Remnawave dashboard. Remnawave Settings → API Tokens.
+
 Paste the following content into the .env file:
 
 ```bash title=".env file"
 APP_PORT=3010
 REMNAWAVE_PANEL_URL=http://remnawave:3000
-META_TITLE="Subscription page"
-META_DESCRIPTION="Subscription page description"
+REMNAWAVE_API_TOKEN=API_TOKEN_FROM_REMNAWAVE
 ```
 
 <details>
@@ -73,35 +74,47 @@ META_DESCRIPTION="Subscription page description"
 APP_PORT=3010
 
 ### Remnawave Panel URL, can be http://remnawave:3000 or https://panel.example.com
-REMNAWAVE_PANEL_URL=https://panel.example.com
-
-
-META_TITLE="Subscription page"
-META_DESCRIPTION="Subscription page description"
-
-# If you want to display raw keys in the subscription page, set this to true.
-# Please note, this setting will not have any effect if you have HWID enabled.
-SUBSCRIPTION_UI_DISPLAY_RAW_KEYS=false
-
-
+REMNAWAVE_PANEL_URL=http://remnawave:3000
+REMNAWAVE_API_TOKEN=API_TOKEN_FROM_REMNAWAVE
 
 # Serve at custom root path, for example, this value can be: CUSTOM_SUB_PREFIX=sub
 # Do not place / at the start/end
 CUSTOM_SUB_PREFIX=
 
-
-
 # Support Marzban links
 MARZBAN_LEGACY_LINK_ENABLED=false
 MARZBAN_LEGACY_SECRET_KEY=
-REMNAWAVE_API_TOKEN=
-
 
 # If you use "Caddy with security" addon, you can place here X-Api-Key, which will be applied to requests to Remnawave Panel.
 CADDY_AUTH_API_TOKEN=
+
+# Express `trust proxy` setting, used so the real client IP is resolved from
+# the trusted hop and cannot be spoofed via X-Forwarded-For. Accepts:
+#   - "true" / "false"                          -> trust all / none
+#   - a non-negative integer (e.g. 1, 2)        -> number of trusted hops
+#   - a comma-separated list of preset names    -> loopback, linklocal, uniquelocal
+#     and/or IP addresses / CIDR subnets        -> e.g. 127.0.0.1, 172.16.0.0/12
+# See https://expressjs.com/en/guide/behind-proxies/
+TRUST_PROXY=1
 ```
 
 </details>
+
+### About `TRUST_PROXY` {#trust-proxy}
+
+:::info About `TRUST_PROXY`
+
+The subscription page runs behind a reverse proxy (Caddy / Nginx), so the client connects to the proxy, not directly to the app. To know the **real** client IP, the app reads the `X-Forwarded-For` header – but that header can be spoofed by the client unless the app is told which hops to trust.
+
+`TRUST_PROXY` is the Express [`trust proxy`](https://expressjs.com/en/guide/behind-proxies/) setting and controls exactly that. Accepted values:
+
+- `true` / `false` – trust all proxies / trust none.
+- a non-negative integer (e.g. `1`, `2`) – number of trusted hops between the app and the client.
+- a comma-separated list of preset names (`loopback`, `linklocal`, `uniquelocal`) and/or IP addresses / CIDR subnets (e.g. `127.0.0.1, 172.16.0.0/12`).
+
+For the standard single reverse proxy on the same host, the default `TRUST_PROXY=1` is correct. Increase the hop count only if you have additional proxies in front (e.g. Cloudflare → Nginx → app).
+
+:::
 
 ## Step 3 - Start the container {#step-3}
 
@@ -152,10 +165,13 @@ Pay attention to the green lines, they are the ones you need to add.
 
 ```caddy title="Caddyfile"
 https://REPLACE_WITH_YOUR_DOMAIN {
+        encode
         reverse_proxy * http://remnawave:3000
 }
 // highlight-next-line-green
 https://SUBSCRIPTION_PAGE_DOMAIN {
+// highlight-next-line-green
+        encode
 // highlight-next-line-green
         reverse_proxy * http://remnawave-subscription-page:3010
 // highlight-next-line-green
@@ -180,7 +196,7 @@ If you have already configured Nginx, all you need to do is add a new location b
 Issue a certificate for the subscription page domain name:
 
 ```bash
-acme.sh --issue --standalone -d 'SUBSCRIPTION_PAGE_DOMAIN' --key-file /opt/remnawave/nginx/subdomain_privkey.key --fullchain-file /opt/remnawave/nginx/subdomain_fullchain.pem --alpn --tlsport 8443
+acme.sh --issue --standalone -d 'SUBSCRIPTION_PAGE_DOMAIN' --key-file /opt/remnawave/nginx/subdomain_privkey.key --fullchain-file /opt/remnawave/nginx/subdomain_fullchain.pem --alpn --tlsport 8443 --reloadcmd "docker exec remnawave-nginx nginx -s reload"
 ```
 
 Open Nginx configuration file:
@@ -299,7 +315,7 @@ cd /opt/remnawave/nginx && nano docker-compose.yml
 ```yaml title="docker-compose.yml"
 services:
     remnawave-nginx:
-        image: nginx:1.28
+        image: nginx:1.30
         container_name: remnawave-nginx
         hostname: remnawave-nginx
         volumes:
@@ -386,17 +402,9 @@ The subscription page will be available at `https://subdomain.panel.com/<shortUu
 
 ## Configuring subscription page (optional) {#customization}
 
-You can customize the subscription page by creating an `app-config.json` file. This allows you to:
+You can customize the subscription page in the Subpage Builder in Remnawave Dashboard. This allows you to:
 
 - Add support for different VPN apps
 - Customize text and instructions in multiple languages
 - Add your own branding (logo, company name, support links)
 - Configure which apps appear as "featured"
-
-```mdx-code-block
-import DocCard from '@theme/DocCard';
-
-<DocCard
-  item={{ type: 'link', label: 'Customization', description: 'Customization guide', href: '/docs/install/subscription-page/customization' }}
-/>
-```

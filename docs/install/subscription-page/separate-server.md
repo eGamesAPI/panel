@@ -45,6 +45,8 @@ Make sure you have Docker installed on the server where you will install the sub
 
 :::
 
+import InstallDocker from '/docs/partials/\_install_docker.md';
+
 ```bash title="Creating docker-compose.yml file"
 mkdir -p /opt/remnawave/subscription && cd /opt/remnawave/subscription && nano docker-compose.yml
 ```
@@ -76,14 +78,16 @@ Now create .env file:
 mkdir -p /opt/remnawave/subscription && cd /opt/remnawave/subscription && nano .env
 ```
 
+Create API token in Remnawave dashboard. Remnawave Settings → API Tokens.
+
 Paste the following content into the .env file:
 
 ```
 APP_PORT=3010
 // highlight-next-line-red
 REMNAWAVE_PANEL_URL=https://remnawave.panel.com
-META_TITLE="Subscription page"
-META_DESCRIPTION="Subscription page description"
+// highlight-next-line-red
+REMNAWAVE_API_TOKEN=API_TOKEN_FROM_REMNAWAVE
 ```
 
 Replace `remnawave.panel.com` with your panel domain name.
@@ -96,22 +100,15 @@ APP_PORT=3010
 
 ### Remnawave Panel URL, can be http://remnawave:3000 or https://panel.example.com
 REMNAWAVE_PANEL_URL=https://panel.example.com
-
-
-META_TITLE="Subscription page"
-META_DESCRIPTION="Subscription page description"
-
+REMNAWAVE_API_TOKEN=API_TOKEN_FROM_REMNAWAVE
 
 # Serve at custom root path, for example, this value can be: CUSTOM_SUB_PREFIX=sub
 # Do not place / at the start/end
 CUSTOM_SUB_PREFIX=
 
-
-
 # Support Marzban links
 MARZBAN_LEGACY_LINK_ENABLED=false
 MARZBAN_LEGACY_SECRET_KEY=
-REMNAWAVE_API_TOKEN=
 
 
 # If you use "Caddy with security" addon, you can place here X-Api-Key, which will be applied to requests to Remnawave Panel.
@@ -120,9 +117,34 @@ CADDY_AUTH_API_TOKEN=
 # If you use Cloudflare Zero Trust to protect your panel, please use this variables to bypass the security.
 CLOUDFLARE_ZERO_TRUST_CLIENT_ID=
 CLOUDFLARE_ZERO_TRUST_CLIENT_SECRET=
+
+# Express `trust proxy` setting, used so the real client IP is resolved from
+# the trusted hop and cannot be spoofed via X-Forwarded-For. Accepts:
+#   - "true" / "false"                          -> trust all / none
+#   - a non-negative integer (e.g. 1, 2)        -> number of trusted hops
+#   - a comma-separated list of preset names    -> loopback, linklocal, uniquelocal
+#     and/or IP addresses / CIDR subnets        -> e.g. 127.0.0.1, 172.16.0.0/12
+# See https://expressjs.com/en/guide/behind-proxies/
+TRUST_PROXY=1
 ```
 
 </details>
+
+### About `TRUST_PROXY` {#trust-proxy}
+
+:::info About `TRUST_PROXY`
+
+The subscription page runs behind a reverse proxy (Caddy / Nginx), so the client connects to the proxy, not directly to the app. To know the **real** client IP, the app reads the `X-Forwarded-For` header – but that header can be spoofed by the client unless the app is told which hops to trust.
+
+`TRUST_PROXY` is the Express [`trust proxy`](https://expressjs.com/en/guide/behind-proxies/) setting and controls exactly that. Accepted values:
+
+- `true` / `false` – trust all proxies / trust none.
+- a non-negative integer (e.g. `1`, `2`) – number of trusted hops between the app and the client.
+- a comma-separated list of preset names (`loopback`, `linklocal`, `uniquelocal`) and/or IP addresses / CIDR subnets (e.g. `127.0.0.1, 172.16.0.0/12`).
+
+For the standard single reverse proxy in front of the page, the default `TRUST_PROXY=1` is correct. Increase the hop count only if you have additional proxies in front (e.g. Cloudflare → Nginx → app).
+
+:::
 
 ## Step 3 - Start the container {#step-3}
 
@@ -235,17 +257,9 @@ The subscription page will be available at `https://subdomain.panel.com/<shortUu
 
 ## Configuring subscription page (optional) {#customization}
 
-You can customize the subscription page by creating an `app-config.json` file. This allows you to:
+You can customize the subscription page in the Subpage Builder in Remnawave Dashboard. This allows you to:
 
 - Add support for different VPN apps
 - Customize text and instructions in multiple languages
 - Add your own branding (logo, company name, support links)
 - Configure which apps appear as "featured"
-
-```mdx-code-block
-import DocCard from '@theme/DocCard';
-
-<DocCard
-  item={{ type: 'link', label: 'Customization', description: 'Customization guide', href: '/docs/install/subscription-page/customization' }}
-/>
-```
