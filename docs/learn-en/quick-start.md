@@ -150,7 +150,7 @@ Visit [Developer Settings page](https://github.com/settings/applications/new) to
     - `Redirect URIs` — `https://panel.example.com/oauth2/callback/github` (replace `panel.example.com` with your Panel domain).
     
 2. **Get Client ID and Client Secret**  
-Copy the `Client ID` from the app page, then click `Generate a new client secret` — the secret is shown only once.
+Copy the `Client ID` from the app page, then click `Generate a new client secret` and copy the `Client Secret` — it is shown only once.
 
 3. **Set the Variables in Remnawave**
     - `Client ID`
